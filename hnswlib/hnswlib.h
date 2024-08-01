@@ -122,6 +122,9 @@ static bool AVX512Capable() {
 #include <string.h>
 
 namespace hnswlib {
+
+int totcalctime=0;
+
 typedef size_t labeltype;
 
 // This can be extended to store state for filtering (e.g. from a std::set)
@@ -178,6 +181,8 @@ class SpaceInterface {
 
     virtual DISTFUNC<MTYPE> get_dist_func() = 0;
 
+    virtual DISTFUNC<MTYPE> get_innerp_func() = 0;
+
     virtual void *get_dist_func_param() = 0;
 
     virtual ~SpaceInterface() {}
@@ -226,3 +231,4 @@ AlgorithmInterface<dist_t>::searchKnnCloserFirst(const void* query_data, size_t 
 #include "stop_condition.h"
 #include "bruteforce.h"
 #include "hnswalg.h"
+#include "hnswfinger.h"

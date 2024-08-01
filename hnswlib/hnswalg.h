@@ -143,6 +143,17 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         revSize_ = 1.0 / mult_;
     }
 
+    void printneiborsize()
+    {
+        for (tableint i = 0; i < cur_element_count; i++)   
+        {
+            int *neighbors = (int *) get_linklist0(i);
+            size_t size = getListCount((linklistsizeint*)neighbors);
+
+            std::cout<<"size: "<<size<<"\n";
+        }
+    }
+
 
     ~HierarchicalNSW() {
         clear();
@@ -326,6 +337,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             (!isMarkedDeleted(ep_id) && ((!isIdAllowed) || (*isIdAllowed)(getExternalLabel(ep_id))))) {
             char* ep_data = getDataByInternalId(ep_id);
             dist_t dist = fstdistfunc_(data_point, ep_data, dist_func_param_);
+            totcalctime++;
             lowerBound = dist;
             top_candidates.emplace(dist, ep_id);
             if (!bare_bone_search && stop_condition) {
@@ -387,6 +399,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
                     char *currObj1 = (getDataByInternalId(candidate_id));
                     dist_t dist = fstdistfunc_(data_point, currObj1, dist_func_param_);
+                    totcalctime++;
 
                     bool flag_consider_candidate;
                     if (!bare_bone_search && stop_condition) {
@@ -955,7 +968,6 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         if ((allow_replace_deleted_ == false) && (replace_deleted == true)) {
             throw std::runtime_error("Replacement of deleted elements is disabled in constructor");
         }
-
         // lock all operations with element by label
         std::unique_lock <std::mutex> lock_label(getLabelOpMutex(label));
         if (!replace_deleted) {
@@ -1274,6 +1286,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
         tableint currObj = enterpoint_node_;
         dist_t curdist = fstdistfunc_(query_data, getDataByInternalId(enterpoint_node_), dist_func_param_);
+        totcalctime++;
 
         for (int level = maxlevel_; level > 0; level--) {
             bool changed = true;
@@ -1292,6 +1305,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                     if (cand < 0 || cand > max_elements_)
                         throw std::runtime_error("cand error");
                     dist_t d = fstdistfunc_(query_data, getDataByInternalId(cand), dist_func_param_);
+                    totcalctime++;
 
                     if (d < curdist) {
                         curdist = d;
@@ -1317,7 +1331,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         }
         while (top_candidates.size() > 0) {
             std::pair<dist_t, tableint> rez = top_candidates.top();
-            result.push(std::pair<dist_t, labeltype>(rez.first, getExternalLabel(rez.second)));
+            result.push(std::pair<dist_t, labeltype>(-rez.first, getExternalLabel(rez.second)));
             top_candidates.pop();
         }
         return result;
